@@ -5,8 +5,6 @@ import retrofit2.http.GET;
 import retrofit2.http.Query;
 
 public interface GlsTrackingService {
-	
-	// https://www.gls-italy.com/index.php?option=com_gls&view=track_e_trace&mode=search&diretto=yes&locpartenza=CN&numsped=630135543
 
 	@GET("get_xml_track.php")
 	public Call<String> getSpedizioneStatus(
