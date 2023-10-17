@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 
+import it.frared.glsitaly.model.AddressList;
 import it.frared.glsitaly.model.Base64Binary;
 import it.frared.glsitaly.model.DeletePickup;
 import it.frared.glsitaly.model.ElencoResponse;
@@ -31,6 +32,7 @@ public class GlsDAO {
 	private String passwordClienteGls;
 	private String codiceContrattoGls;
 
+	private GlsAddressService addressService;
 	private GlsLabelService labelService;
 	private GlsTrackingService trackingService;
 	private XmlMapper xmlMapper;
@@ -42,7 +44,15 @@ public class GlsDAO {
 		this.codiceContrattoGls = codiceContrattoGls;
 
 		OkHttpClient httpClient = new OkHttpClient.Builder().build();
-		labelService = new Retrofit.Builder()
+
+		this.addressService = new Retrofit.Builder()
+			.baseUrl("https://checkaddress.gls-italy.com/wsCheckAddress.asmx/")
+			.addConverterFactory(ScalarsConverterFactory.create())
+			.client(httpClient)
+			.build()
+			.create(GlsAddressService.class);
+
+		this.labelService = new Retrofit.Builder()
 			.baseUrl("https://labelservice.gls-italy.com/ilswebservice.asmx/")
 			//.addConverterFactory(JacksonConverterFactory.create())
 			.addConverterFactory(ScalarsConverterFactory.create())
@@ -50,7 +60,7 @@ public class GlsDAO {
 			.build()
 			.create(GlsLabelService.class);
 
-		trackingService = new Retrofit.Builder()
+		this.trackingService = new Retrofit.Builder()
 			.baseUrl("https://infoweb.gls-italy.com/XML/")
 			.addConverterFactory(ScalarsConverterFactory.create())
 			.client(httpClient)
@@ -63,6 +73,26 @@ public class GlsDAO {
 		xmlMapper.configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, false);
 		xmlMapper.configure(ToXmlGenerator.Feature.WRITE_XML_1_1, false);
 		xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	}
+
+	public AddressList checkAddress(
+		String siglaProvincia,
+		String cap,
+		String localita,
+		String indirizzo) throws GlsServiceException {
+
+		try {
+			Response<String> response = addressService.checkAddress(sedeGls, codiceClienteGls, passwordClienteGls, siglaProvincia, cap, localita, indirizzo)
+				.execute();
+			if (!response.isSuccessful()) {
+				throw new GlsServiceException("WS error");
+			}
+			log.debug("addressList\n{}", response.body());
+			AddressList infoResponse = xmlMapper.readValue(response.body(), AddressList.class);
+			return infoResponse;
+		} catch (Exception e) {
+			throw new GlsServiceException("Unable to check Address", e);
+		}
 	}
 
 	public InfoResponse addParcel(
