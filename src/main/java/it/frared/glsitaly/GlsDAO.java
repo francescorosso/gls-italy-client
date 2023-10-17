@@ -1,8 +1,6 @@
 package it.frared.glsitaly;
 
-import org.bouncycastle.util.encoders.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Base64;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -19,14 +17,14 @@ import it.frared.glsitaly.model.Pickup;
 import it.frared.glsitaly.model.PickupsResponse;
 import it.frared.glsitaly.model.RitiroResponse;
 import it.frared.glsitaly.model.SpedizioneResponse;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
+@Slf4j
 public class GlsDAO {
-
-	private static final Logger logger = LoggerFactory.getLogger(GlsDAO.class);
 
 	private String sedeGls;
 	private String codiceClienteGls;
@@ -116,14 +114,14 @@ public class GlsDAO {
 			}
 
 			String xml = xmlMapper.writeValueAsString(info);
-			logger.debug("addParcel\n{}", xml);
+			log.debug("addParcel\n{}", xml);
 
 			Response<String> response = labelService.addParcel(xml)
 				.execute();
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			logger.debug("addParcelResponse\n{}", response.body());
+			log.debug("addParcelResponse\n{}", response.body());
 			InfoResponse infoResponse = xmlMapper.readValue(response.body(), InfoResponse.class);
 			return infoResponse;
 
@@ -139,8 +137,8 @@ public class GlsDAO {
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			logger.debug("deleteParcelResponse\n{}", response.body());
-			logger.debug("Deleted Parcel {}", numeroSpedizione);
+			log.debug("deleteParcelResponse\n{}", response.body());
+			log.debug("Deleted Parcel {}", numeroSpedizione);
 		} catch (Exception e) {
 			throw new GlsServiceException("Unable to delete Parcel", e);
 		}
@@ -157,7 +155,7 @@ public class GlsDAO {
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			logger.debug("elencoResponse\n{}", response.body());
+			log.debug("elencoResponse\n{}", response.body());
 			ElencoResponse e = xmlMapper.readValue(response.body(), ElencoResponse.class);
 			return e.getSpedizioni().get(0);
 		} catch (Exception e) {
@@ -173,7 +171,7 @@ public class GlsDAO {
 				throw new GlsServiceException("WS error");
 			}
 			Base64Binary base64 = xmlMapper.readValue(response.body(), Base64Binary.class);
-			return Base64.decode(base64.getText());
+			return Base64.getDecoder().decode(base64.getText());
 		} catch (Exception e) {
 			throw new GlsServiceException("Unable to get Parcel PDF", e);
 		}
@@ -216,13 +214,13 @@ public class GlsDAO {
 			info.pickup(pickup);
 
 			String xml = xmlMapper.writeValueAsString(info);
-			logger.debug("requestPickup\n{}", xml);
+			log.debug("requestPickup\n{}", xml);
 			Response<String> response = labelService.requestPickup(xml)
 				.execute();
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			logger.debug("requestPickupResponse\n{}", response.body());
+			log.debug("requestPickupResponse\n{}", response.body());
 			PickupsResponse pickups = xmlMapper.readValue(response.body(), PickupsResponse.class);
 			return pickups.getPickups().get(0).getNumeroRitiro();
 		} catch (Exception e) {
@@ -247,13 +245,13 @@ public class GlsDAO {
 			info.deletePickup(pickup);
 
 			String xml = xmlMapper.writeValueAsString(info);
-			logger.debug("deletePickup\n{}", xml);
+			log.debug("deletePickup\n{}", xml);
 			Response<String> response = labelService.deletePickup(xml)
 				.execute();
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			logger.debug("deletePickupResponse\n{}", response.body());
+			log.debug("deletePickupResponse\n{}", response.body());
 			//PickupsResponse pickups = xmlMapper.readValue(response.body(), PickupsResponse.class);
 			//return pickups.getPickups().get(0).getNumeroRitiro();
 		} catch (Exception e) {

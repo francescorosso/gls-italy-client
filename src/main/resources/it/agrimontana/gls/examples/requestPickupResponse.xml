@@ -1,0 +1,29 @@
+<RisultatiRitiri>
+  <RitiroCreato NumeroRitiro="CN9630025565">
+    <CodiceContrattoGls>4309</CodiceContrattoGls>
+    <NomeRichiedente>Magazzino</NomeRichiedente>
+    <Colli>1</Colli>
+    <PesoReale>1</PesoReale>
+    <DataRitiro>30-08-2023</DataRitiro>
+    <Dalle1>9</Dalle1>
+    <Alle1>12</Alle1>
+    <Dalle2>15</Dalle2>
+    <Alle2>17</Alle2>
+    <TipoCollo>0</TipoCollo>
+    <Clienteritiro>Azienda Agrimontana SpA</Clienteritiro>
+    <Indirizzoritiro>Via Camillo Benso conte di Cavour, 185</Indirizzoritiro>
+    <Localitaritiro>Borgo San Dalmazzo</Localitaritiro>
+    <CAPritiro>12011</CAPritiro>
+    <Provinciaritiro>CN</Provinciaritiro>
+    <EmailLuogoritiro>agrimontana@agrimontana.it</EmailLuogoritiro>
+    <Bda />
+    <Clientedestinatario />
+    <Indirizzodestinatario />
+    <Localitadestinatario />
+    <CAPdestinatario />
+    <Provinciadestinatario />
+    <Riferimentocliente />
+    <Importocontrassegno />
+    <Assicurazione />
+  </RitiroCreato>
+</RisultatiRitiri>

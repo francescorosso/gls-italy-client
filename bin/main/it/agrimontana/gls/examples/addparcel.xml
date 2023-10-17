@@ -1,0 +1,28 @@
+<Info>
+	<SedeGls>CN</SedeGls>
+	<CodiceClienteGls>51458</CodiceClienteGls>
+	<PasswordClienteGls>CN4v3e0p9!</PasswordClienteGls>
+	<AddParcelResult>S</AddParcelResult>
+	<Parcel>
+		<CodiceContrattoGls>4309</CodiceContrattoGls>
+		<RagioneSociale>Fabrizio Rogas</RagioneSociale>
+		<Indirizzo>Via Fratelli Silvestro, 1</Indirizzo>
+		<Localita>Cuneo</Localita>
+		<Zipcode>12100</Zipcode>
+		<Provincia>CN</Provincia>
+		<Colli>1</Colli>
+		<PesoReale>2,5</PesoReale>
+		<NoteSpedizione></NoteSpedizione>
+		<TipoPorto>F</TipoPorto>
+		<RiferimentoCliente>LROBRXILX</RiferimentoCliente>
+		<NoteAggiuntive></NoteAggiuntive>
+		<TipoCollo>0</TipoCollo>
+		<Email>francescorosso@me.com</Email>
+		<Cellulare1>3333289986</Cellulare1>
+		<GeneraPdf>4</GeneraPdf>
+		<FormatoPdf>A6</FormatoPdf>
+		<TipoSpedizione>N</TipoSpedizione>
+		<TelefonoDestinatario>3333289986</TelefonoDestinatario>
+		<TelefonoMittente></TelefonoMittente>
+	</Parcel>
+</Info>

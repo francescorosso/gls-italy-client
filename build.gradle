@@ -5,6 +5,11 @@ plugins {
 group = 'it.frared.glsitaly'
 version = '0.1-alpha'
 
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
 repositories {
     mavenCentral()
 }
@@ -12,8 +17,15 @@ repositories {
 dependencies {
     testImplementation 'junit:junit:4.13.2'
 
+	implementation 'org.slf4j:slf4j-api:2.0.7'
+
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
 	implementation 'com.squareup.retrofit2:retrofit:2.9.0'
 	implementation 'com.squareup.retrofit2:converter-jackson:2.9.0'
 	implementation 'com.squareup.retrofit2:converter-scalars:2.9.0'
 	implementation 'com.squareup.okhttp3:logging-interceptor:4.0.1'
+
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.3'
 }
