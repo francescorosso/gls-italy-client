@@ -1,5 +1,8 @@
 package it.frared.glsitaly;
 
+import it.frared.glsitaly.model.Base64Binary;
+import it.frared.glsitaly.model.CloseParcelsResult;
+import it.frared.glsitaly.model.InfoResponse;
 import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -11,7 +14,7 @@ public interface GlsLabelService {
 
 	@POST("AddParcel")
 	@FormUrlEncoded
-	public Call<String> addParcel(
+	public Call<InfoResponse> addParcel(
 		@Field("XMLInfoParcel") String xml);
 
 	@POST("DeleteSped")
@@ -24,11 +27,11 @@ public interface GlsLabelService {
 
 	@POST("CloseWorkDayByShipmentNumber")
 	@FormUrlEncoded
-	public Call<String> confirmParcel(
+	public Call<CloseParcelsResult> confirmParcel(
 		@Field("_xmlRequest") String xml);
 
 	@GET("GetPdfBySped")
-	public Call<String> getPdfBySped(
+	public Call<Base64Binary> getPdfBySped(
 		@Query("SedeGls") String SedeGls,
 		@Query("CodiceCliente") String CodiceCliente,
 		@Query("Password") String Password,

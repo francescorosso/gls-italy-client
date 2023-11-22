@@ -2,6 +2,11 @@ package it.frared.glsitaly.model;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
 public class ParcelResponse {
 
 	@JacksonXmlProperty(localName = "Result", isAttribute = true)
@@ -17,27 +22,8 @@ public class ParcelResponse {
 	@JacksonXmlProperty(localName = "ProgressivoCollo")
 	private int progressivoCollo;
 
-	public String getResult() {
-		return this.result;
-	}
-
-	public String getWarningDescription() {
-		return this.warningDescription;
-	}
-
-	public String getCode() {
-		return this.code;
-	}
-
-	public String getNumeroSpedizione() {
-		return this.numeroSpedizione;
-	}
-
-	public int getTotaleColli() {
-		return this.totaleColli;
-	}
-
-	public int getProgressivoCollo() {
-		return this.progressivoCollo;
-	}
+	@JacksonXmlProperty(localName = "NumeroDiSpedizioneGLSDaConfermare")
+	private String numeroDiSpedizioneGLSDaConfermare;
+	@JacksonXmlProperty(localName = "esito")
+	private String esito;
 }

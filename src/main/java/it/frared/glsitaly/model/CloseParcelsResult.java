@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@JacksonXmlRootElement(localName = "InfoLabel")
-public class InfoResponse {
-
+@JacksonXmlRootElement(localName = "CloseWorkDayByShipmentNumberResult")
+public class CloseParcelsResult {
+	
 	@JacksonXmlProperty(localName = "Parcel")
 	@JacksonXmlElementWrapper(useWrapping = false)
 	private List<ParcelResponse> parcels;

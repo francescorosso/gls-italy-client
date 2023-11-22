@@ -2,13 +2,17 @@ package it.frared.glsitaly;
 
 import java.util.Base64;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import it.frared.glsitaly.model.AddressList;
 import it.frared.glsitaly.model.Base64Binary;
+import it.frared.glsitaly.model.CloseParcelsResult;
 import it.frared.glsitaly.model.DeletePickup;
 import it.frared.glsitaly.model.ElencoResponse;
 import it.frared.glsitaly.model.Info;
@@ -22,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 @Slf4j
@@ -35,6 +40,7 @@ public class GlsDAO {
 	private GlsAddressService addressService;
 	private GlsLabelService labelService;
 	private GlsTrackingService trackingService;
+	private ObjectMapper jsonMapper;
 	private XmlMapper xmlMapper;
 
 	public GlsDAO(String sedeGls, String codiceClienteGls, String passwordClienteGls, String codiceContrattoGls) {
@@ -42,6 +48,18 @@ public class GlsDAO {
 		this.codiceClienteGls = codiceClienteGls;
 		this.passwordClienteGls = passwordClienteGls;
 		this.codiceContrattoGls = codiceContrattoGls;
+
+		jsonMapper = new ObjectMapper()
+			.registerModule(new JavaTimeModule())
+			.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+			.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+		xmlMapper = XmlMapper.builder()
+			.defaultUseWrapper(false)
+			.serializationInclusion(JsonInclude.Include.NON_DEFAULT)
+			.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+			.addModule(new JavaTimeModule())
+			.build();
 
 		OkHttpClient httpClient = new OkHttpClient.Builder().build();
 
@@ -55,7 +73,7 @@ public class GlsDAO {
 		this.labelService = new Retrofit.Builder()
 			.baseUrl("https://labelservice.gls-italy.com/ilswebservice.asmx/")
 			//.addConverterFactory(JacksonConverterFactory.create())
-			.addConverterFactory(ScalarsConverterFactory.create())
+			.addConverterFactory(JacksonConverterFactory.create(xmlMapper))
 			.client(httpClient)
 			.build()
 			.create(GlsLabelService.class);
@@ -95,7 +113,7 @@ public class GlsDAO {
 		}
 	}
 
-	public InfoResponse addParcel(
+	public String addParcel(
 		String ragioneSociale,
 		String indirizzo,
 		String localita,
@@ -113,32 +131,32 @@ public class GlsDAO {
 
 		try {
 			Info info = new Info()
-				.sedeGls(sedeGls)
-				.codiceClienteGls(codiceClienteGls)
-				.passwordClienteGls(passwordClienteGls)
-				.addParcelResult("S");
+				.setSedeGls(sedeGls)
+				.setCodiceClienteGls(codiceClienteGls)
+				.setPasswordClienteGls(passwordClienteGls)
+				.setAddParcelResult("S");
 
 			for (int i = 0; i < colli; i++) {
 				Parcel parcel = new Parcel()
-					.codiceContrattoGls(codiceContrattoGls)
-					.tipoPorto("F")
-					.tipoCollo(0)
-					.generaPdf(3)
-					.formatoPdf("A6")
-					.tipoSpedizione("N")
+					.setCodiceContrattoGls(codiceContrattoGls)
+					.setTipoPorto("F")
+					.setTipoCollo(0)
+					.setGeneraPdf(3)
+					.setFormatoPdf("A6")
+					.setTipoSpedizione("N")
 
-					.ragioneSociale(ragioneSociale)
-					.indirizzo(indirizzo)
-					.localita(localita)
-					.zipcode(zipCode)
-					.provincia(provincia)
-					.riferimentoCliente(riferimentoCliente)
-					.bda(riferimentoCliente)
-					.email(email)
-					.cellulare1(cellulare)
-					.telefonoDestinatario(cellulare)
-					.colli(colli)
-					.pesoReale(peso);
+					.setRagioneSociale(ragioneSociale)
+					.setIndirizzo(indirizzo)
+					.setLocalita(localita)
+					.setZipcode(zipCode)
+					.setProvincia(provincia)
+					.setRiferimentoCliente(riferimentoCliente)
+					.setBda(riferimentoCliente)
+					.setEmail(email)
+					.setCellulare1(cellulare)
+					.setTelefonoDestinatario(cellulare)
+					.setColli(colli)
+					.setPesoReale(peso);
 
 				info.parcel(parcel);
 			}
@@ -146,14 +164,19 @@ public class GlsDAO {
 			String xml = xmlMapper.writeValueAsString(info);
 			log.debug("addParcel\n{}", xml);
 
-			Response<String> response = labelService.addParcel(xml)
+			Response<InfoResponse> response = labelService.addParcel(xml)
 				.execute();
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
 			log.debug("addParcelResponse\n{}", response.body());
-			InfoResponse infoResponse = xmlMapper.readValue(response.body(), InfoResponse.class);
-			return infoResponse;
+
+			//TODO check result
+
+			String numeroSpedizione = response.body().getParcels().get(0).getNumeroSpedizione();
+			log.info("Added new Parcel {}", numeroSpedizione);
+
+			return numeroSpedizione;
 
 		} catch (Exception e) {
 			throw new GlsServiceException("Unable to add Parcel", e);
@@ -168,14 +191,46 @@ public class GlsDAO {
 				throw new GlsServiceException("WS error");
 			}
 			log.debug("deleteParcelResponse\n{}", response.body());
-			log.debug("Deleted Parcel {}", numeroSpedizione);
+
+			//TODO check result
+
+			log.info("Deleted Parcel {}", numeroSpedizione);
 		} catch (Exception e) {
 			throw new GlsServiceException("Unable to delete Parcel", e);
 		}
 	}
 
-	public void confirmParcel() {
-		//TODO
+	public void confirmParcel(String numeroSpedizione) throws GlsServiceException {
+		try {
+			Info info = new Info()
+				.setSedeGls(sedeGls)
+				.setCodiceClienteGls(codiceClienteGls)
+				.setPasswordClienteGls(passwordClienteGls);
+
+			Parcel parcel = new Parcel()
+				.setNumeroDiSpedizioneGLSDaConfermare(numeroSpedizione);
+
+			info.parcel(parcel);
+
+			String xml = xmlMapper.writeValueAsString(info);
+			log.debug("confirmParcel\n{}", xml);
+
+			Response<CloseParcelsResult> response = labelService.confirmParcel(xml)
+				.execute();
+			if (!response.isSuccessful()) {
+				throw new GlsServiceException("WS error");
+			}
+			
+			log.debug("confirmParcelResponse\n{}", response.body());
+
+			if (!"OK".equals(response.body().getParcels().get(0).getEsito())) {
+				throw new GlsServiceException("WS error");
+			}
+
+			log.info("Confirmed Parcel {}", numeroSpedizione);
+		} catch (Exception e) {
+			throw new GlsServiceException("Unable to confirm Parcel", e);
+		}
 	}
 
 	public SpedizioneResponse getSpedizioneStatus(String numeroSpedizione) throws GlsServiceException {
@@ -195,13 +250,12 @@ public class GlsDAO {
 
 	public byte[] getPdfBySped(String numeroSpedizione, int numeroCollo) throws GlsServiceException {
 		try {
-			Response<String> response = labelService.getPdfBySped(sedeGls, codiceClienteGls, passwordClienteGls, codiceContrattoGls, numeroSpedizione, "1", numeroCollo)
+			Response<Base64Binary> response = labelService.getPdfBySped(sedeGls, codiceClienteGls, passwordClienteGls, codiceContrattoGls, numeroSpedizione, "1", numeroCollo)
 				.execute();
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			Base64Binary base64 = xmlMapper.readValue(response.body(), Base64Binary.class);
-			return Base64.getDecoder().decode(base64.getText());
+			return Base64.getDecoder().decode(response.body().getText());
 		} catch (Exception e) {
 			throw new GlsServiceException("Unable to get Parcel PDF", e);
 		}
@@ -218,9 +272,9 @@ public class GlsDAO {
 		String allePomeriggio) throws GlsServiceException {
 		try {
 			Info info = new Info()
-				.sedeGls(sedeGls)
-				.codiceClienteGls(codiceClienteGls)
-				.passwordClienteGls(passwordClienteGls);
+				.setSedeGls(sedeGls)
+				.setCodiceClienteGls(codiceClienteGls)
+				.setPasswordClienteGls(passwordClienteGls);
 
 			Pickup pickup = new Pickup()
 				.codiceContrattoGls(codiceContrattoGls)
@@ -261,9 +315,9 @@ public class GlsDAO {
 	public void deletePickup(String numeroRitiro) throws GlsServiceException {
 		try {
 			Info info = new Info()
-				.sedeGls(sedeGls)
-				.codiceClienteGls(codiceClienteGls)
-				.passwordClienteGls(passwordClienteGls);
+				.setSedeGls(sedeGls)
+				.setCodiceClienteGls(codiceClienteGls)
+				.setPasswordClienteGls(passwordClienteGls);
 
 			DeletePickup pickup = new DeletePickup()
 				.codiceContrattoGls(codiceContrattoGls)
