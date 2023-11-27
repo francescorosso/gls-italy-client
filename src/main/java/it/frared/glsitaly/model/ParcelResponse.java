@@ -21,9 +21,15 @@ public class ParcelResponse {
 	private int totaleColli;
 	@JacksonXmlProperty(localName = "ProgressivoCollo")
 	private int progressivoCollo;
+	@JacksonXmlProperty(localName = "DescrizioneSedeDestino")
+	private String descrizioneSedeDestino;
 
 	@JacksonXmlProperty(localName = "NumeroDiSpedizioneGLSDaConfermare")
 	private String numeroDiSpedizioneGLSDaConfermare;
 	@JacksonXmlProperty(localName = "esito")
 	private String esito;
+
+	public boolean isError() {
+		return "ERRORE".equals(descrizioneSedeDestino);
+	}
 }

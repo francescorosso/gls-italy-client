@@ -3,6 +3,7 @@ package it.frared.glsitaly;
 import it.frared.glsitaly.model.Base64Binary;
 import it.frared.glsitaly.model.CloseParcelsResult;
 import it.frared.glsitaly.model.InfoResponse;
+import it.frared.glsitaly.model.PickupsResponse;
 import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -38,15 +39,16 @@ public interface GlsLabelService {
 		@Query("CodiceContratto") String CodiceContratto,
 		@Query("NumeroSpedizione") String NumeroSpedizione,
 		@Query("Bda") String Bda,
-		@Query("NumeroCollo") int NumeroCollo);
+		@Query("NumeroCollo") int NumeroCollo,
+		@Query("TipoPorto") String TipoPorto);
 
 	@POST("PickUpRequest")
 	@FormUrlEncoded
-	public Call<String> requestPickup(
+	public Call<PickupsResponse> requestPickup(
 		@Field("XMLInfoPickUpRequest") String xml);
 
 	@POST("DeletePickUp")
 	@FormUrlEncoded
-	public Call<String> deletePickup(
+	public Call<PickupsResponse> deletePickup(
 		@Field("XMLInfoDeletePickUp") String xml);
 }
