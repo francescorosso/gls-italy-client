@@ -97,6 +97,14 @@ public class GlsDAO {
 		return this.sedeGls;
 	}
 
+	public String getNumeroSpedizione(String trackingNumber) {
+		if (trackingNumber.startsWith(this.sedeGls)) {
+			return trackingNumber.substring(this.sedeGls.length());
+		} else {
+			return trackingNumber;
+		}
+	}
+
 	public AddressList checkAddress(
 		String siglaProvincia,
 		String cap,
@@ -139,29 +147,30 @@ public class GlsDAO {
 				.setCodiceClienteGls(codiceClienteGls)
 				.setPasswordClienteGls(passwordClienteGls)
 				.setAddParcelResult("S");
+			for (int i = 0; i < colli; i++) {
+				Parcel parcel = new Parcel()
+					.setCodiceContrattoGls(codiceContrattoGls)
+					.setTipoPorto("F")
+					.setTipoCollo(0)
+					.setGeneraPdf(4)
+					.setFormatoPdf("A6")
+					.setTipoSpedizione("N")
 
-			Parcel parcel = new Parcel()
-				.setCodiceContrattoGls(codiceContrattoGls)
-				.setTipoPorto("F")
-				.setTipoCollo(0)
-				.setGeneraPdf(4)
-				.setFormatoPdf("A6")
-				.setTipoSpedizione("N")
+					.setRagioneSociale(ragioneSociale)
+					.setIndirizzo(indirizzo)
+					.setLocalita(localita)
+					.setZipcode(zipCode)
+					.setProvincia(provincia)
+					.setRiferimentoCliente(riferimentoCliente)
+					.setBda(riferimentoCliente)
+					.setEmail(email)
+					.setCellulare1(cellulare)
+					.setTelefonoDestinatario(cellulare)
+					.setColli(i)
+					.setPesoReale(peso);
 
-				.setRagioneSociale(ragioneSociale)
-				.setIndirizzo(indirizzo)
-				.setLocalita(localita)
-				.setZipcode(zipCode)
-				.setProvincia(provincia)
-				.setRiferimentoCliente(riferimentoCliente)
-				.setBda(riferimentoCliente)
-				.setEmail(email)
-				.setCellulare1(cellulare)
-				.setTelefonoDestinatario(cellulare)
-				.setColli(colli)
-				.setPesoReale(peso);
-
-			info.parcel(parcel);
+				info.parcel(parcel);
+			}
 
 			String xml = xmlMapper.writeValueAsString(info);
 			log.debug("addParcel\n{}", xml);
@@ -181,14 +190,15 @@ public class GlsDAO {
 			String numeroSpedizione = parcelResponse.getNumeroSpedizione();
 			log.info("Added new Parcel {}", numeroSpedizione);
 
-			return numeroSpedizione;
-
+			return this.getSede() + numeroSpedizione;
 		} catch (IOException e) {
 			throw new GlsServiceException("Unable to add Parcel", e);
 		}
 	}
 
 	public void deleteParcel(String numeroSpedizione) throws GlsServiceException {
+		numeroSpedizione = this.getNumeroSpedizione(numeroSpedizione);
+
 		try {
 			Response<Void> response = labelService.deleteParcel(sedeGls, codiceClienteGls, passwordClienteGls, numeroSpedizione)
 				.execute();
@@ -206,6 +216,8 @@ public class GlsDAO {
 	}
 
 	public void confirmParcel(String numeroSpedizione) throws GlsServiceException {
+		numeroSpedizione = this.getNumeroSpedizione(numeroSpedizione);
+
 		try {
 			Info info = new Info()
 				.setSedeGls(sedeGls)
@@ -239,6 +251,8 @@ public class GlsDAO {
 	}
 
 	public SpedizioneResponse getParcelStatus(String numeroSpedizione) throws GlsServiceException {
+		numeroSpedizione = this.getNumeroSpedizione(numeroSpedizione);
+
 		try {
 			Response<String> response = trackingService.getRitiroStatus(sedeGls, codiceContrattoGls, numeroSpedizione)
 				.execute();
@@ -254,6 +268,7 @@ public class GlsDAO {
 	}
 
 	public byte[] getPdfBySped(String numeroSpedizione, String bda, int numeroCollo, String tipoPorto) throws GlsServiceException {
+		numeroSpedizione = this.getNumeroSpedizione(numeroSpedizione);
 
 		try {
 			Response<Base64Binary> response = labelService.getPdfBySped(
