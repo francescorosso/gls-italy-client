@@ -31,7 +31,6 @@ import okhttp3.OkHttpClient;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
-import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 @Slf4j
 public class GlsDAO {
@@ -44,7 +43,6 @@ public class GlsDAO {
 	private String passwordClienteGls;
 	private String codiceContrattoGls;
 	
-	private ObjectMapper jsonMapper;
 	private XmlMapper xmlMapper;
 
 	private GlsAddressService addressService;
@@ -57,11 +55,6 @@ public class GlsDAO {
 		this.passwordClienteGls = passwordClienteGls;
 		this.codiceContrattoGls = codiceContrattoGls;
 
-		jsonMapper = new ObjectMapper()
-			.registerModule(new JavaTimeModule())
-			.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-			.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
 		xmlMapper = XmlMapper.builder()
 			.defaultUseWrapper(false)
 			.serializationInclusion(JsonInclude.Include.NON_DEFAULT)
@@ -73,7 +66,7 @@ public class GlsDAO {
 
 		this.addressService = new Retrofit.Builder()
 			.baseUrl("https://checkaddress.gls-italy.com/wsCheckAddress.asmx/")
-			.addConverterFactory(ScalarsConverterFactory.create())
+			.addConverterFactory(JacksonConverterFactory.create(xmlMapper))
 			.client(httpClient)
 			.build()
 			.create(GlsAddressService.class);
@@ -87,7 +80,7 @@ public class GlsDAO {
 
 		this.trackingService = new Retrofit.Builder()
 			.baseUrl("https://infoweb.gls-italy.com/XML/")
-			.addConverterFactory(ScalarsConverterFactory.create())
+			.addConverterFactory(JacksonConverterFactory.create(xmlMapper))
 			.client(httpClient)
 			.build()
 			.create(GlsTrackingService.class);
@@ -106,19 +99,19 @@ public class GlsDAO {
 	}
 
 	public AddressList checkAddress(
-		String siglaProvincia,
-		String cap,
+		String indirizzo,
 		String localita,
-		String indirizzo) throws GlsServiceException {
+		String zipCode,
+		String provincia) throws GlsServiceException {
 
 		try {
-			Response<String> response = addressService.checkAddress(sedeGls, codiceClienteGls, passwordClienteGls, siglaProvincia, cap, localita, indirizzo)
+			Response<AddressList> response = addressService.checkAddress(sedeGls, codiceClienteGls, passwordClienteGls, indirizzo, localita, zipCode, provincia)
 				.execute();
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
 			log.debug("addressList\n{}", response.body());
-			AddressList infoResponse = xmlMapper.readValue(response.body(), AddressList.class);
+			AddressList infoResponse = response.body();
 			return infoResponse;
 		} catch (Exception e) {
 			throw new GlsServiceException("Unable to check Address", e);
@@ -167,7 +160,7 @@ public class GlsDAO {
 					.setCellulare1(cellulare)
 					.setTelefonoDestinatario(cellulare)
 					.setColli(i)
-					.setPesoReale(peso);
+					.setPesoReale(peso / colli);
 
 				info.parcel(parcel);
 			}
@@ -247,23 +240,6 @@ public class GlsDAO {
 			log.info("Confirmed Parcel {}", numeroSpedizione);
 		} catch (Exception e) {
 			throw new GlsServiceException("Unable to confirm Parcel", e);
-		}
-	}
-
-	public SpedizioneResponse getParcelStatus(String numeroSpedizione) throws GlsServiceException {
-		numeroSpedizione = this.getNumeroSpedizione(numeroSpedizione);
-
-		try {
-			Response<String> response = trackingService.getRitiroStatus(sedeGls, codiceContrattoGls, numeroSpedizione)
-				.execute();
-			if (!response.isSuccessful()) {
-				throw new GlsServiceException("WS error");
-			}
-			log.debug("elencoResponse\n{}", response.body());
-			ElencoResponse e = xmlMapper.readValue(response.body(), ElencoResponse.class);
-			return e.getSpedizioni().get(0);
-		} catch (Exception e) {
-			throw new GlsServiceException("Unable to retrieve spedizione status", e);
 		}
 	}
 
@@ -371,15 +347,32 @@ public class GlsDAO {
 		}
 	}
 
-	public RitiroResponse getRitiroStatus(String numeroRitiro) throws GlsServiceException {
+	public SpedizioneResponse getParcelStatus(String numeroSpedizione) throws GlsServiceException {
+		numeroSpedizione = this.getNumeroSpedizione(numeroSpedizione);
+
 		try {
-			Response<String> response = trackingService.getRitiroStatus(sedeGls, codiceContrattoGls, numeroRitiro)
+			Response<ElencoResponse> response = trackingService.getParcelStatus(sedeGls, codiceContrattoGls, numeroSpedizione)
 				.execute();
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			ElencoResponse e = xmlMapper.readValue(response.body(), ElencoResponse.class);
-			return e.getRitiri().get(0);
+			log.debug("elencoResponse\n{}", response.body());
+			ElencoResponse elenco = response.body();
+			return elenco.getSpedizioni().get(0);
+		} catch (Exception e) {
+			throw new GlsServiceException("Unable to retrieve spedizione status", e);
+		}
+	}
+
+	public RitiroResponse getPickupStatus(String numeroRitiro) throws GlsServiceException {
+		try {
+			Response<ElencoResponse> response = trackingService.getPickupStatus(sedeGls, codiceContrattoGls, numeroRitiro)
+				.execute();
+			if (!response.isSuccessful()) {
+				throw new GlsServiceException("WS error");
+			}
+			ElencoResponse elenco = response.body();
+			return elenco.getRitiri().get(0);
 		} catch (Exception e) {
 			throw new GlsServiceException("Unable to retrieve ritiro status", e);
 		}

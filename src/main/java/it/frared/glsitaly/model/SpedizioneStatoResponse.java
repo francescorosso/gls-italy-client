@@ -19,6 +19,11 @@ public class SpedizioneStatoResponse {
 		public static final String IN_TRANSITO = "903";
 		public static final String ARRIVATA_SEDE_DESTINATARIO = "904";
 		public static final String IN_CONSEGNA = "905";
+		public static final String CONSEGNA_CONCORDATA = "14";
+		public static final String CONSEGNA_PREVISTA = "17";
+		public static final String CONSEGNA_PREVISTA_GS = "28";
+		public static final String DISPONIBILE_PER_RITIRO = "80";
+		
 		public static final String CONSEGNATA = "906";
 	}
 	
