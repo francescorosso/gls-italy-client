@@ -5,11 +5,9 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 
 @Getter
 @Setter
-@Accessors(chain = true)
 @NoArgsConstructor
 public class SpedizioneStatoResponse {
 
@@ -32,4 +30,6 @@ public class SpedizioneStatoResponse {
 	private String stato;
 	private String note;
 	private String codice;
+
+	
 }

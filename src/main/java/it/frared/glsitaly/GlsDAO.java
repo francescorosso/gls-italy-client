@@ -8,8 +8,6 @@ import java.util.Base64;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
@@ -110,7 +108,7 @@ public class GlsDAO {
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			log.debug("addressList\n{}", response.body());
+			logger.debug("addressList\n{}", response.body());
 			AddressList infoResponse = response.body();
 			return infoResponse;
 		} catch (Exception e) {
@@ -140,7 +138,7 @@ public class GlsDAO {
 				.setCodiceClienteGls(codiceClienteGls)
 				.setPasswordClienteGls(passwordClienteGls)
 				.setAddParcelResult("S");
-			for (int i = 0; i < colli; i++) {
+			for (int i = 1; i <= colli; i++) {
 				Parcel parcel = new Parcel()
 					.setCodiceContrattoGls(codiceContrattoGls)
 					.setTipoPorto("F")
@@ -166,7 +164,7 @@ public class GlsDAO {
 			}
 
 			String xml = xmlMapper.writeValueAsString(info);
-			log.debug("addParcel\n{}", xml);
+			logger.trace("addParcel\n{}", xml);
 
 			Response<InfoResponse> response = labelService.addParcel(xml)
 				.execute();
@@ -176,12 +174,17 @@ public class GlsDAO {
 
 			ParcelResponse parcelResponse = response.body().getParcels().get(0);
 			if (parcelResponse.isError()) {
-				log.warn("address not valid");
+				logger.warn("address not valid");
 				throw new GlsServiceAddressException("address not valid for order " + riferimentoCliente);
 			}
 
 			String numeroSpedizione = parcelResponse.getNumeroSpedizione();
-			log.info("Added new Parcel {}", numeroSpedizione);
+/*			if (parcelResponse.getTotaleColli() != colli) {
+				this.deleteParcel(numeroSpedizione);
+				return this.addParcel(ragioneSociale, indirizzo, localita, zipCode, provincia, riferimentoCliente, email, cellulare, colli, peso);
+			}*/
+
+			logger.info("Added new Parcel {} with {} colli", numeroSpedizione, parcelResponse.getTotaleColli());
 
 			return this.getSede() + numeroSpedizione;
 		} catch (IOException e) {
@@ -198,11 +201,11 @@ public class GlsDAO {
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			log.debug("deleteParcelResponse\n{}", response.body());
+			logger.debug("deleteParcelResponse\n{}", response.body());
 
 			//TODO check result
 
-			log.info("Deleted Parcel {}", numeroSpedizione);
+			logger.info("Deleted Parcel {}", numeroSpedizione);
 		} catch (Exception e) {
 			throw new GlsServiceException("Unable to delete Parcel", e);
 		}
@@ -223,7 +226,7 @@ public class GlsDAO {
 			info.parcel(parcel);
 
 			String xml = xmlMapper.writeValueAsString(info);
-			log.debug("confirmParcel\n{}", xml);
+			logger.debug("confirmParcel\n{}", xml);
 
 			Response<CloseParcelsResult> response = labelService.confirmParcel(xml)
 				.execute();
@@ -231,13 +234,13 @@ public class GlsDAO {
 				throw new GlsServiceException("WS error");
 			}
 			
-			log.debug("confirmParcelResponse\n{}", response.body());
+			logger.debug("confirmParcelResponse\n{}", response.body());
 
 			if (!"OK".equals(response.body().getParcels().get(0).getEsito())) {
 				throw new GlsServiceException("WS error");
 			}
 
-			log.info("Confirmed Parcel {}", numeroSpedizione);
+			logger.info("Confirmed Parcel {}", numeroSpedizione);
 		} catch (Exception e) {
 			throw new GlsServiceException("Unable to confirm Parcel", e);
 		}
@@ -303,13 +306,13 @@ public class GlsDAO {
 			info.pickup(pickup);
 
 			String xml = xmlMapper.writeValueAsString(info);
-			log.debug("requestPickup\n{}", xml);
+			logger.debug("requestPickup\n{}", xml);
 			Response<PickupsResponse> response = labelService.requestPickup(xml)
 				.execute();
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			log.debug("requestPickupResponse\n{}", response.body());
+			logger.debug("requestPickupResponse\n{}", response.body());
 			return response.body().getPickups().get(0).getNumeroRitiro();
 		} catch (Exception e) {
 			throw new GlsServiceException("Unable to request a new pickup", e);
@@ -333,13 +336,13 @@ public class GlsDAO {
 			info.deletePickup(pickup);
 
 			String xml = xmlMapper.writeValueAsString(info);
-			log.debug("deletePickup\n{}", xml);
+			logger.debug("deletePickup\n{}", xml);
 			Response<PickupsResponse> response = labelService.deletePickup(xml)
 				.execute();
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			log.debug("deletePickupResponse\n{}", response.body());
+			logger.debug("deletePickupResponse\n{}", response.body());
 			//PickupsResponse pickups = xmlMapper.readValue(response.body(), PickupsResponse.class);
 			//return pickups.getPickups().get(0).getNumeroRitiro();
 		} catch (Exception e) {
@@ -356,7 +359,7 @@ public class GlsDAO {
 			if (!response.isSuccessful()) {
 				throw new GlsServiceException("WS error");
 			}
-			log.debug("elencoResponse\n{}", response.body());
+			logger.debug("elencoResponse\n{}", response.body());
 			ElencoResponse elenco = response.body();
 			return elenco.getSpedizioni().get(0);
 		} catch (Exception e) {
