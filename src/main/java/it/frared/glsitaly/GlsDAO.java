@@ -123,6 +123,7 @@ public class GlsDAO {
 		String zipCode,
 		String provincia,
 		String riferimentoCliente,
+		String noteAggiuntive,
 		String email,
 		String cellulare,
 		int colli,
@@ -153,6 +154,7 @@ public class GlsDAO {
 					.setZipcode(zipCode)
 					.setProvincia(provincia)
 					.setRiferimentoCliente(riferimentoCliente)
+					.setNoteAggiuntive(noteAggiuntive)
 					.setBda(riferimentoCliente)
 					.setEmail(email)
 					.setCellulare1(cellulare)
