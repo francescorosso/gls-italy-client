@@ -54,6 +54,9 @@ public class Parcel {
 	@JacksonXmlProperty(localName = "TelefonoMittente")
 	private String telefonoMittente;
 
+	@JacksonXmlProperty(localName = "ImportoContrassegno")
+	private String importoContrassegno;
+
 	@JacksonXmlProperty(localName = "NumeroDiSpedizioneGLSDaConfermare")
 	private String numeroDiSpedizioneGLSDaConfermare;
 

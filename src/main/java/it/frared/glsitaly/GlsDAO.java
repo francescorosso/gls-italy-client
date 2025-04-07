@@ -1,6 +1,7 @@
 package it.frared.glsitaly;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -127,10 +128,11 @@ public class GlsDAO {
 		String email,
 		String cellulare,
 		int colli,
-		double peso) throws GlsServiceException {
+		double peso,
+		double contrassegno) throws GlsServiceException {
 
 		if (colli < 1 || colli > 99) {
-			throw new GlsServiceException("Colli must be >= 1");
+			throw new GlsServiceException("Colli must be from 1 to 99");
 		}
 
 		try {
@@ -162,7 +164,11 @@ public class GlsDAO {
 					.setColli(i)
 					.setPesoReale(peso / colli);
 
-				info.parcel(parcel);
+				if (contrassegno > 0) {
+					parcel.setImportoContrassegno(new DecimalFormat("#.00").format(contrassegno));
+				}
+				
+					info.parcel(parcel);
 			}
 
 			String xml = xmlMapper.writeValueAsString(info);
