@@ -128,8 +128,7 @@ public class GlsDAO {
 		String email,
 		String cellulare,
 		int colli,
-		double peso,
-		double contrassegno) throws GlsServiceException {
+		double peso) throws GlsServiceException {
 
 		if (colli < 1 || colli > 99) {
 			throw new GlsServiceException("Colli must be from 1 to 99");
@@ -164,9 +163,6 @@ public class GlsDAO {
 					.setColli(i)
 					.setPesoReale(peso / colli);
 
-				if (contrassegno > 0) {
-					parcel.setImportoContrassegno(new DecimalFormat("#.00").format(contrassegno));
-				}
 				
 					info.parcel(parcel);
 			}
@@ -219,7 +215,7 @@ public class GlsDAO {
 		}
 	}
 
-	public void confirmParcel(String numeroSpedizione) throws GlsServiceException {
+	public void confirmParcel(String numeroSpedizione, double contrassegno) throws GlsServiceException {
 		numeroSpedizione = this.getNumeroSpedizione(numeroSpedizione);
 
 		try {
@@ -230,6 +226,10 @@ public class GlsDAO {
 
 			Parcel parcel = new Parcel()
 				.setNumeroDiSpedizioneGLSDaConfermare(numeroSpedizione);
+
+			if (contrassegno > 0) {
+				parcel.setImportoContrassegno(new DecimalFormat("#.00").format(contrassegno));
+			}
 
 			info.parcel(parcel);
 
