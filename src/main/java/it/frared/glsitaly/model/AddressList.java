@@ -19,7 +19,8 @@ public class AddressList {
 
 	@JacksonXmlProperty(localName = "Address")
 	@JacksonXmlElementWrapper(useWrapping = false)
-	private List<Address> addresses;
+	private List<GlsAddress> addresses;
+
 
 	public boolean isAddressValid() {
 		return "Destinazione corretta.".equals(esito);
