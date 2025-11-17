@@ -128,12 +128,14 @@ public class GlsDAO {
 		String email,
 		String cellulare,
 		int colli,
-		double peso) throws GlsServiceException {
+		double peso,
+		String modalitaIncasso,
+		String msg) throws GlsServiceException {
 
 		if (colli < 1 || colli > 99) {
 			throw new GlsServiceException("Colli must be from 1 to 99");
 		}
-
+		System.out.println("msg="+msg);
 		try {
 			Info info = new Info()
 				.setSedeGls(sedeGls)
@@ -161,7 +163,9 @@ public class GlsDAO {
 					.setCellulare1(cellulare)
 					.setTelefonoDestinatario(cellulare)
 					.setColli(i)
-					.setPesoReale(peso / colli);
+					.setPesoReale(peso / colli)
+					.setModalitaIncasso(modalitaIncasso)
+					.setNoteSpedizione(msg);
 
 				
 					info.parcel(parcel);
@@ -169,6 +173,7 @@ public class GlsDAO {
 
 			String xml = xmlMapper.writeValueAsString(info);
 			logger.trace("addParcel\n{}", xml);
+			System.out.println(xml);
 
 			Response<InfoResponse> response = labelService.addParcel(xml)
 				.execute();
@@ -215,7 +220,7 @@ public class GlsDAO {
 		}
 	}
 
-	public void confirmParcel(String numeroSpedizione, double contrassegno) throws GlsServiceException {
+	public void confirmParcel(String numeroSpedizione, double contrassegno, String modalitaIncasso) throws GlsServiceException {
 		numeroSpedizione = this.getNumeroSpedizione(numeroSpedizione);
 
 		try {
@@ -229,12 +234,14 @@ public class GlsDAO {
 
 			if (contrassegno > 0) {
 				parcel.setImportoContrassegno(new DecimalFormat("#.00").format(contrassegno));
+				parcel.setModalitaIncasso(modalitaIncasso);
 			}
 
 			info.parcel(parcel);
 
 			String xml = xmlMapper.writeValueAsString(info);
 			logger.debug("confirmParcel\n{}", xml);
+			System.out.println(xml);
 
 			Response<CloseParcelsResult> response = labelService.confirmParcel(xml)
 				.execute();

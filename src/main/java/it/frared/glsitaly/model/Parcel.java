@@ -60,4 +60,7 @@ public class Parcel {
 	@JacksonXmlProperty(localName = "NumeroDiSpedizioneGLSDaConfermare")
 	private String numeroDiSpedizioneGLSDaConfermare;
 
+ 	@JacksonXmlProperty(localName = "ModalitaIncasso")
+	private String modalitaIncasso;
+
 }
